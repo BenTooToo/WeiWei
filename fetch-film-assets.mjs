@@ -9,9 +9,9 @@ const groups=[
  {title:'巴厘岛的恍惚与舞蹈',en:'Trance and Dance in Bali',year:1952,files:['Trance and dance in Bali Bateson Mead still 1.jpg','Trance and dance in Bali Bateson Mead still 3.jpg','Trance and dance in Bali Bateson Mead still 5.jpg']},
  {title:'斯凡涅季的盐',en:'Salt for Svanetia',year:1930,files:['Salt for svanetia.jpg']}
 ];
-await fs.mkdir('dist/assets/films',{recursive:true});
+await fs.mkdir('assets/films',{recursive:true});
 // Append without changing existing asset paths; repeated runs skip saved files.
-const assets=process.argv.includes('--append')?JSON.parse(await fs.readFile('dist/films.json','utf8')):[];
+const assets=process.argv.includes('--append')?JSON.parse(await fs.readFile('films.json','utf8')):[];
 for(const group of groups){
  const pending=group.files.filter(file=>!assets.some(asset=>asset.file==='File:'+file));
  if(!pending.length)continue;
@@ -24,9 +24,9 @@ for(const group of groups){
   const info=page.imageinfo?.[0];if(!info)continue;
   const src=info.thumburl||info.url; const r=await fetch(src,{signal:AbortSignal.timeout(30000)});if(!r.ok){console.log('Skipped '+page.title+' '+r.status);continue;}
   const filename=`frame-${String(assets.length+1).padStart(2,'0')}.${new URL(src).pathname.endsWith('.png')?'png':'jpg'}`;
-  await fs.writeFile('dist/assets/films/'+filename,Buffer.from(await r.arrayBuffer()));
+  await fs.writeFile('assets/films/'+filename,Buffer.from(await r.arrayBuffer()));
   assets.push({title:group.title,en:group.en,year:group.year,src:'assets/films/'+filename,source:info.descriptionurl,file:page.title,license:info.extmetadata?.LicenseShortName?.value||'See source',artist:info.extmetadata?.Artist?.value||'',credit:info.extmetadata?.Credit?.value||''});
  }
 }
-await fs.writeFile('dist/films.json',JSON.stringify(assets,null,2)+'\n');
+await fs.writeFile('films.json',JSON.stringify(assets,null,2)+'\n');
 console.log('Saved '+assets.length+' film stills with source metadata.');
